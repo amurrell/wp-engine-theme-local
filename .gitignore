@@ -1,0 +1,22 @@
+# OS generated files #
+######################
+.DS_Store*
+ehthumbs.db
+Thumbs.db
+
+# Local Development Related #
+######################
+!DockerLocal
+DockerLocal/commands/site-tinker
+
+# Misc #
+######################
+
+# WP-Engine Theme Local #
+######################
+html/wp/*
+wp-engine-downloads/*
+html/wp-content/*.*
+!html/wp-content/index.php
+html/wp-content/*/*
+!html/wp-content/*/index.php
