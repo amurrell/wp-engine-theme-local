@@ -146,6 +146,20 @@ You will go to a different URL than you are used to: http://localhost:3028/wp/wp
 
 You may have issues if you copied over mu-plugins from wp-engine SFTP - you can just delete it from `wp-engine-downloads/<your-site>` and refresh - should remove issues.
 
+### XDebug
+
+This project includes `.vscode` folder with extension recommendation (PHP debug) and a launch.json file with settings that work with Dockerlocal (exposed port 9003).
+
+This means that you are just seconds away from debugging! 
+
+1. Make sure you have the xdebug extension installed / enabled. - can also type `@recommended` in extensions panel.
+2. Make sure DockerLocal is running (you can see your site running in browser)
+3. Add a breakpoint to debug at: Go into a file, eg. your themes footer and on the left side of a line, click till red circle comes up
+4. Enter debug panel (left menu "bug" + play button) & select from dropdown Run and Debug "WP-Theme-Local: Xdebug" & press play in command palette.
+5. Now, trigger your site - go to the page and refresh it. 
+6. Enjoy debugging - vscode should popup at breakpoint and you can inspect values
+7. Press stop to exit debug session.
+
 [☝️ Back to Contents](#contents)
 
 ---
