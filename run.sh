@@ -45,7 +45,9 @@ if [ -z "$(ls -A html/wp)" ]; then
   curl -O https://wordpress.org/latest.tar.gz
   tar -xzf latest.tar.gz
   rm latest.tar.gz
-  mv wordpress/* html/wp
+  mkdir -p html/wp
+  mv wordpress wp
+  mv wp html/
   echo "✅ === WordPress downloaded"
 else
   echo "☑️  === wp folder is already installed"
@@ -117,8 +119,25 @@ else
 fi
 
 ### DockerLocal Submodule - Check if DockerLocal submodule exists - if not, initialize it
+DOCKERLOCAL_PULLED=false
 if [ -z "$(git submodule status | grep DockerLocal)" ]; then
   echo "👉 === No DockerLocal submodule found. Initializing DockerLocal submodule."
+
+  git submodule add -b master git@github.com:amurrell/DockerLocal.git DockerLocal
+  echo "✅ === DockerLocal submodule initialized"
+else
+  # if DockerLocal/versions exists AND override-php-version exists - DOCKERLOCAL_PULLED=true
+  if [ -d "DockerLocal/versions" ] && [ -f "DockerLocal/versions/override-php-version" ]; then
+    DOCKERLOCAL_PULLED=true
+  fi
+  # pull updates to DockerLocal submodule
+  echo "👉 === DockerLocal submodule found. init submodule recursively."
+  git submodule update --init --recursive
+  echo "☑️  === DockerLocal submodule found"
+fi
+
+# if dockerlocal is not pulled - we want to ask for PHP version and port to run dockerlocal on
+if [ "$DOCKERLOCAL_PULLED" = false ]; then
   ## prompt for PHP version
   echo "👉 === Please enter the PHP version you would like to use (eg. 8.0):"
   read PHP_VERSION
@@ -127,17 +146,24 @@ if [ -z "$(git submodule status | grep DockerLocal)" ]; then
     echo "👉 === No PHP version entered. Please run this script again."
     exit 1
   fi
-
-  git submodule add -b master git@github.com:amurrell/DockerLocal.git DockerLocal
   echo "$PHP_VERSION" > DockerLocal/versions/override-php-version
-  echo "✅ === DockerLocal submodule initialized"
-else
-  # pull updates to DockerLocal submodule
-  echo "👉 === DockerLocal submodule found. init submodule recursively."
-  git submodule update --init --recursive
-  echo "☑️  === DockerLocal submodule found"
-fi
 
+  # ask for a port to run dockerlocal on - eg. suggest 3028
+  echo "👉 === Please enter a port to run DockerLocal on (eg. 3028):"
+  read DOCKERLOCAL_PORT
+  ## if empty, error & run again
+  if [ -z "$DOCKERLOCAL_PORT" ]; then
+    echo "👉 === No port entered. Please run this script again."
+    exit 1
+  fi
+  # if port does not start with 30 and is not 4 chars long, then error
+  if [[ ! "$DOCKERLOCAL_PORT" =~ ^30[0-9]{2}$ ]]; then
+    echo "👉 === Port must start with 30 and be 4 characters long. Please run this script again."
+    exit 1
+  fi
+  echo "$DOCKERLOCAL_PORT" > DockerLocal/port
+  echo "✅ === DockerLocal PHP-version & port set"
+fi
 
 ### Swap Site: Check folders exist, and swap.
 printf "\n\n🏁 === Starting Swap - site $SITE_NAME ...\n\n"
