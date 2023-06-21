@@ -1,8 +1,8 @@
 # WP-Engine Theme Local
 
-**Local development** wordpress "wrapper" for wp-engine hosted site, with support for a **version-controlled theme** as a submodule.
+**Local development** (via docker) wordpress "wrapper" for wp-engine hosted site, with support for a **version-controlled theme** as a submodule.
 
-All your plugins, uploads, and database files will be stored in the `wp-engine-downloads/` folder that you will populate from wp-engine SFTP (optionally, your theme folder as well).
+All your plugins, uploads, and database files will be stored in the `wp-engine-downloads/` folder that you will populate from wp-engine SFTP.
 
 Working on multiple sites? You can swap between sites by running the **run script** again.
 
@@ -11,6 +11,10 @@ Example:
 ```
 ./run.sh mysite
 ```
+
+Theme Development:
+
+All done inside theme folders: eg. `themes/mysite` submodule folder
 
 ---
 
@@ -37,7 +41,7 @@ The **run script** will do the following:
 - Install latest wordpress (if not already installed)
 - Install DockerLocal (if not already installed) - asks [php version](#php-version) 1st time, change it as needed.
 - Install your theme as a git submodule OR use your downloaded theme
-- Copy site-specific folders into html/wp-content folder
+- Create symbolic links relative to docker containers for: site-specific folders into html/wp-content folder
 - Start your DockerLocal (first time takes a while; very fast when image is cached)
 - Import your database (if not already imported)
 
@@ -51,6 +55,7 @@ The **run script** will do the following:
 - [Requirements](#requirements)
 - [👉 Install & Run Site](#install)
 - [Usages](#usages)
+- [Development & Persistence](#development--persistence)
 - [Delete Site](#delete)
 - [DockerLocal](#dockerlocal)
     - [PHP version](#php-version)
@@ -68,12 +73,12 @@ The **run script** will do the following:
 
 Very useful for developers to do:
 
-- local testing of PHP upgrades,
-- Plugin Upgrades
+- local testing of PHP upgrades
+- plugin upgrades
 - development
 - using an IDE debugger to track down issues
 - start using version control on a theme that was not previously version controlled
-- turn this wrapper repo into a private local development repo for many themes a team is working on.
+- turn this wrapper repo into a private local development repo for however many themes a team is working on.
 
 [☝️ Back to Contents](#contents)
 
@@ -140,6 +145,38 @@ There are a lot of customizations you can make to your DockerLocal install. For 
 - find out how to use mysql vs mariadb (default)
 - how to make customizations to your nginx.site.conf file
 - how to download specific PHP packages into your DockerFile
+- how to use the debugger
+
+[☝️ Back to Contents](#contents)
+
+---
+
+## Development & Persistence
+
+**Edit Files** - Make all changes to the files in the paths: `wp-engine-downloads/<site-name>` and `themes/<site-name>` - not the symbolic links in `html/wp-content`. The symbolic links are created by the **run script** and are relative to the docker container, so the `html` paths will not exist in your local file system.
+
+**Theme - Version Controlled Submodule** - If you are using a submodule for your theme, you can develop it in the `themes/<site-name>` folder. You can `cd` into the folder on your local file system and use git commands to commit and push to the submodule's repo!
+
+Example: Git commands to commit and push to the submodule's repo:
+
+```
+cd themes/mysite
+git status
+git add .
+git commit -m "my commit"
+git push origin dev
+```
+
+**Persistence** - While you are swapping your "themes" out via **run script** your files are safe in the `wp-engine-downloads/<site-name>` folder (unless you run the **delete script**). Changes to your wp-content files will be preserved in these folders even though the symbolic links are being swapped out in the `html/*` paths.
+
+Take a look **inside the docker container** to see the symbolic links.
+
+```
+cd DockerLocal/commands
+./site-ssh -h=web
+ls -al /var/www/site/html/wp-content/
+ls -al /var/www/site/html/wp-content/themes/
+```
 
 [☝️ Back to Contents](#contents)
 

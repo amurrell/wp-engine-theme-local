@@ -14,9 +14,12 @@ DockerLocal/commands/site-tinker
 
 # WP-Engine Theme Local #
 ######################
+# html
 html/wp/*
-wp-engine-downloads/*
 html/wp-content/*.*
 !html/wp-content/index.php
 html/wp-content/*/*
 !html/wp-content/*/index.php
+# downloads
+wp-engine-downloads/*
+!wp-engine-downloads/.gitkeep

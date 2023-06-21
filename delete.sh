@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+### Current Directory
+CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+CONTAINER_DIR='/var/www/site'
+
 ### User will run: `./delete.sh <site-name>`
 
 ### Goals:
@@ -28,13 +32,14 @@ fi
 ### SUBMODULE - Delete submodule <site-name> if exists
 if [ -d "themes/$SITE_NAME" ]; then
   echo "👉 === Deleting theme submodule $SITE_NAME"
-  # git rm --cached themes/$SITE_NAME
-  # Remove the submodule entry from .git/config
-  git submodule deinit -f themes/$SITE_NAME
-  # Remove the submodule directory from the project's .git/modules directory
+
+  git reset .gitmodules
+  git submodule deinit -f -- themes/$SITE_NAME
   rm -rf .git/modules/themes/$SITE_NAME
-  # Remove the entry in .gitmodules and remove the submodule directory located at themes/<site-name>
   git rm -f themes/$SITE_NAME
+
+  # put a .gitkeep into themes
+  touch themes/.gitkeep
   echo "✅ === Theme submodule $SITE_NAME deleted"
 else
   echo "☑️  === No theme submodule $SITE_NAME found"
@@ -49,6 +54,20 @@ else
   echo "☑️  === No wp-engine-downloads folder $SITE_NAME found"
 fi
 
+### Update html/wp-content/ - loop through every folder
+echo "👉 === Clearing out html/wp-content/<folders>"
+for folder in html/wp-content/*; do
+    # if the file is a directory
+    if [ -d "$folder" ]; then
+      # delete the folder, make a new folder - cp wp-content/index.php into it
+      rm -rf $folder
+      mkdir -p $folder
+      cp html/wp-content/index.php $folder/index.php
+      echo "✅ === Folder $folder cleared & replaced"
+    fi
+done
+
+
 ### DUMPS - Delete DockerLocal/data/dumps/<site-name>.import.sql if exists
 if [ -f "DockerLocal/data/dumps/$SITE_NAME.import.sql" ]; then
   echo "👉 === Deleting dump file $SITE_NAME.import.sql"
@@ -58,13 +77,17 @@ else
   echo "☑️  === No dump file $SITE_NAME.import.sql found"
 fi
 
-### DB - Delete the db inside the container for <site-name> if exists
-# ### See if <site-name> is in the list of databases
-# ./site-ssh -h=mysql -c="echo 'show databases;' | mysql -u root -p1234" | grep -qw $SITE_NAME
-# if [ $? -eq 0 ]; then
-#   echo "👉 === Deleting database $SITE_NAME"
-#   ./site-ssh -h=mysql -c="echo 'drop database if exists $SITE_NAME' | mysql -u root -p1234"
-#   echo "✅ === Database $SITE_NAME deleted"
-# else
-#   echo "☑️  === No database $SITE_NAME found"
-# fi
+COMMANDS_DIR=$CURRENT_DIR/DockerLocal/commands
+
+cd $COMMANDS_DIR
+
+## DB - Delete the db inside the container for <site-name> if exists
+### See if <site-name> is in the list of databases
+./site-ssh -h=mysql -c="echo 'show databases;' | mysql -u root -p1234" | grep -qw $SITE_NAME
+if [ $? -eq 0 ]; then
+  echo "👉 === Deleting database $SITE_NAME"
+  ./site-ssh -h=mysql -c="echo 'drop database if exists $SITE_NAME' | mysql -u root -p1234"
+  echo "✅ === Database $SITE_NAME deleted"
+else
+  echo "☑️  === No database $SITE_NAME found"
+fi
