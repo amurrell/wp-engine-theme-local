@@ -69,6 +69,8 @@ The **run script** will do the following:
     - [SFTP Client Download](#sftp-client-tested-w-filezilla)
 - [WP Overrides](#wp-overrides)
 - [Private Repo Recommended](#private-repo-recommended)
+- [Troubleshooting](#troubleshooting)
+    - [WP Engine Login not working Locally](#wp-engine-logins-not-working-locally)
 
 ---
 
@@ -318,5 +320,32 @@ Why?
 You may be working on these wp-engine projects with a team of people and may need to privately share the repo with specific files/themes/submodules that get version-controlled afterall (removing some from files from `.gitignore`). Hence, it should become "your" repo.
 
 **Alternatively, you can use this repo with no plans to commit.** If not everyone can use the SFTP method to get your site files, try hosting them in another secure, team-accessible location - eg. google drive, dropbox, etc. Then instruct your team to follow the README and viola - you have a local development environment for the team to use.
+
+[☝️ Back to Contents](#contents)
+
+---
+
+# Troubleshooting
+
+## WP-Engine Logins not working locally
+
+WP-Engine may be using different security/auth plugins that affect hashes stored and computed. That will mean you cannot login as the user. Luckily we can use wp-cli to update users in your local copy with new password.
+
+
+### Install WP-CLI inside of the DockerLocal container (just needed once)
+
+```
+./site-ssh -h=webroot
+
+curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+
+chmod +x wp-cli.phar
+
+sudo mv wp-cli.phar /usr/local/bin/wp
+
+cd /var/www/site/html
+
+wp user update <username> --user_pass=<new-password>
+```
 
 [☝️ Back to Contents](#contents)
